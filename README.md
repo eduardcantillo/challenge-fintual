@@ -1,31 +1,35 @@
 # 📈 Sistema de Rebalanceo de Portafolio de Inversiones
 
-Este proyecto implementa en **Go (Golang)** la lógica matemática y de orquestación para el **rebalanceo de un portafolio de acciones**. El sistema permite determinar con precisión qué activos comprar, vender o mantener para alinear la cartera real del inversionista con su distribución objetivo deseada.
+![Go Version](https://img.shields.io/badge/Go-1.20%2B-00ADD8?style=flat&logo=go)
+![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20Layered-blue)
+![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)
+
+Este proyecto implementa en **Go (Golang)** la lógica matemática y la orquestación para el **rebalanceo de un portafolio de inversión en acciones**. Permite calcular exactamente qué activos **comprar**, **vender** o **mantener** para alinear el valor real del portafolio del inversionista con su asignación de activos objetivo deseada.
 
 ---
 
 ## 🏛️ Arquitectura y Estructura del Proyecto
 
-El proyecto sigue los principios de **Clean Architecture** y separación de responsabilidades:
+El código sigue los principios de **Clean Architecture** y separación clara de responsabilidades:
 
 ```text
 fintual/
 ├── cmd/
-│   └── main.go                  # Punto de entrada ultralimpio de la aplicación (14 líneas)
+│   └── main.go                  # Punto de entrada de la aplicación CLI (Entrypoint)
 ├── pkg/
-│   ├── models/                  # Entidades del dominio
-│   │   ├── stock.go             # Entidad Acción con método ObtenerPrecioActual
-│   │   ├── portfolio.go         # Entidad Portafolio con validación de asignación (100%)
-│   │   ├── rebalance.go         # Modelos de reporte, recomendaciones y ActionType.Symbol()
-│   │   └── scenario.go          # Modelo de pruebas dinámicas y deserializador JSON
-│   ├── services/                # Servicios y lógica de negocio
-│   │   ├── portfolio_service.go # Orquestador desacoplado con métodos privados por cada paso
-│   │   ├── price_provider.go    # Interfaz y Mock para consulta de precios de mercado
-│   │   └── portfolio_service_test.go # Pruebas unitarias automatizadas
-│   └── cli/                     # Componentes de interfaz por consola
-│       ├── app.go               # Orquestador del menú interactivo y CLI
-│       └── printer.go           # Formateador de tablas e instrucciones en consola
-└── data/                        # Escenarios de prueba dinámicos en JSON
+│   ├── models/                  # Entidades y modelos del dominio
+│   │   ├── stock.go             # Entidad Acción (Ticker, Cantidad, ObtenerPrecioActual)
+│   │   ├── portfolio.go         # Entidad Portafolio y validación de asignación (100%)
+│   │   ├── rebalance.go         # Estructuras de reporte, recomendaciones e iconos visuales
+│   │   └── scenario.go          # Lector y mapeador de escenarios de prueba desde JSON
+│   ├── services/                # Capa de servicio y lógica de negocio
+│   │   ├── portfolio_service.go # Orquestador del algoritmo en 7 pasos (métodos privados)
+│   │   ├── price_provider.go    # Interfaz y Mock para proveedores de precios de mercado
+│   │   └── portfolio_service_test.go # Suite de pruebas unitarias automatizadas
+│   └── cli/                     # Capa de presentación por consola (CLI)
+│       ├── app.go               # Orquestador del menú interactivo y comandos CLI
+│       └── printer.go           # Formateador e impresor visual de tablas y reportes
+└── data/                        # Escenarios de prueba dinámicos en formato JSON
     ├── scenario1_tech_growth.json
     ├── scenario2_balanced.json
     └── scenario3_dividend_value.json
@@ -37,32 +41,34 @@ fintual/
 
 La lógica central está encapsulada en `PortfolioService.Rebalance` y dividida en **7 pasos secuenciales**:
 
-1. **Calcular el Valor Total Actual**: Suma el valor de mercado de todas las acciones poseídas ($\sum \text{cantidad} \times \text{precio\_actual}$).
-2. **Iterar sobre la Asignación Objetivo**: Valida previamente que los porcentajes sumen exactamente **100% (1.0)**.
-3. **Calcular el "Valor Ideal"**: Multiplica el Valor Total Actual por el porcentaje asignado a cada acción ($\text{Valor Total} \times \% \text{Objetivo}$).
-4. **Calcular el "Valor Real"**: Consulta las unidades actualmente poseídas y las multiplica por su precio actual.
-5. **Determinar la Diferencia**: Resta el Valor Real al Valor Ideal ($\text{Valor Ideal} - \text{Valor Real}$).
-   - **Positivo**: Requiere **`COMPRAR`**.
-   - **Negativo**: Requiere **`VENDER`**.
-   - **Cero**: Se debe **`MANTENER`**.
-6. **Traducir a Unidades (Acciones)**: Divide el monto de la diferencia entre el precio actual ($\frac{|\text{Diferencia}|}{\text{Precio Actual}}$).
-7. **Retorno de Información**: Construye y devuelve el reporte consolidado con las acciones exactas a ejecutar.
+> [!IMPORTANT]
+> **Regla de Validación**: La suma de los porcentajes de la asignación objetivo debe ser siempre exactamente igual al **100% (1.0)**.
+
+| Paso | Nombre | Descripción / Fórmula |
+| :--- | :--- | :--- |
+| **Paso 1** | **Valor Total Actual** | Suma del valor de mercado de todas las acciones poseídas: <br> `Valor Total = ∑ (Cantidad × Precio Actual)` |
+| **Paso 2** | **Asignación Objetivo** | Iteración sobre la distribución objetivo y validación del 100%. |
+| **Paso 3** | **Valor Ideal** | Dinero ideal a tener invertido en cada acción: <br> `Valor Ideal = Valor Total Actual × Porcentaje Objetivo` |
+| **Paso 4** | **Valor Real** | Dinero actual invertido en cada acción: <br> `Valor Real = Cantidad Poseída × Precio Actual` |
+| **Paso 5** | **Determinar Diferencia** | Comparación entre lo ideal y lo real: <br> `Diferencia = Valor Ideal - Valor Real` <br> • `Diferencia > 0` ➔ **COMPRAR** <br> • `Diferencia < 0` ➔ **VENDER** <br> • `Diferencia == 0` ➔ **MANTENER** |
+| **Paso 6** | **Traducir a Unidades** | Cálculo de acciones físicas a comprar o vender: <br> `Unidades = |Diferencia| / Precio Actual` |
+| **Paso 7** | **Reporte Consolidado** | Generación del reporte completo ordenado con resumen de instrucciones. |
 
 ---
 
-## 🚀 Cómo Ejecutar la Aplicación
+## 🚀 Instrucciones de Ejecución
 
-### Prerrequisitos
-- Tener instalado **Go** (versión 1.20 o superior).
+> [!NOTE]
+> Requisito previo: Tener instalado [Go 1.20+](https://go.dev/dl/).
 
-### 1. Menú Interactivo (Modo por Defecto)
-Ejecuta el comando principal sin argumentos para abrir el menú interactivo:
+### 1. Menú Interactivo (Recomendado)
+Ejecuta la aplicación sin argumentos para abrir el menú interactivo de selección de escenarios:
 
 ```bash
 go run cmd/main.go
 ```
 
-**Ejemplo de consola:**
+**Vista en Consola:**
 ```text
 ================================================================================
              SISTEMA DE REBALANCEO DE PORTAFOLIO DE INVERSIONES                 
@@ -81,21 +87,22 @@ go run cmd/main.go
 Ingrese el número de opción [Por defecto: 1]: 
 ```
 
-*(Si presionas `ENTER` sin escribir nada, seleccionará automáticamente la opción `[1]`)*.
+> [!TIP]
+> Si presionas `ENTER` sin ingresar ningún número, el sistema seleccionará automáticamente la opción **`[1]`** por defecto.
 
-### 2. Ejecución Directa por Número de Opción
-Puedes pasar el número de opción como argumento en la terminal:
+### 2. Ejecución Directa por CLI
+Puedes enviar el número de opción directamente como argumento:
 
 ```bash
 # Ejecutar escenario 2 (Balanceado Conservador)
 go run cmd/main.go 2
 
-# Ejecutar TODOS los escenarios
+# Ejecutar TODOS los escenarios dinámicamente
 go run cmd/main.go 4
 ```
 
-### 3. Ejecutar un Archivo JSON Específico
-Puedes pasar la ruta directa a cualquier archivo JSON:
+### 3. Cargar un Archivo JSON Específico
+Puedes pasar la ruta directa de cualquier archivo JSON de portafolio:
 
 ```bash
 go run cmd/main.go data/scenario3_dividend_value.json
@@ -103,9 +110,9 @@ go run cmd/main.go data/scenario3_dividend_value.json
 
 ---
 
-## 🧪 Cómo Ejecutar las Pruebas Unitarias
+## 🧪 Pruebas Unitarias
 
-Para correr el suite completo de pruebas unitarias automatizadas:
+Para correr las pruebas unitarias automatizadas del paquete de servicios:
 
 ```bash
 go test -v ./...
@@ -113,9 +120,9 @@ go test -v ./...
 
 ---
 
-## 📄 Estructura de Escenarios JSON (`data/*.json`)
+## 📄 Formato de Escenarios JSON (`data/*.json`)
 
-Puedes agregar nuevos escenarios creando archivos `.json` en la carpeta `data/` siguiendo esta estructura:
+Puedes agregar tus propios escenarios creando archivos en la carpeta `data/`:
 
 ```json
 {
