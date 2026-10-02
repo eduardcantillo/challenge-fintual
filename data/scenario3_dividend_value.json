@@ -1,0 +1,26 @@
+{
+  "scenario_name": "Portafolio Dividendos & Valor",
+  "description": "Portafolio enfocado en generación de flujo de caja por dividendos",
+  "market_prices": {
+    "JNJ": 155.00,
+    "PG": 160.00,
+    "KO": 62.00,
+    "PEP": 170.00,
+    "XOM": 115.00
+  },
+  "portfolio": {
+    "holdings": [
+      { "ticker": "JNJ", "quantity": 40.0 },
+      { "ticker": "PG", "quantity": 10.0 },
+      { "ticker": "PEP", "quantity": 5.0 },
+      { "ticker": "XOM", "quantity": 50.0 }
+    ],
+    "target_allocation": {
+      "JNJ": 0.25,
+      "PG": 0.25,
+      "KO": 0.20,
+      "PEP": 0.15,
+      "XOM": 0.15
+    }
+  }
+}

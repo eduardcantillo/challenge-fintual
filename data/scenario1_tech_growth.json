@@ -1,0 +1,25 @@
+{
+  "scenario_name": "Portafolio Tech Growth",
+  "description": "Rebalanceo de un portafolio de alto crecimiento tecnológico",
+  "market_prices": {
+    "META": 500.00,
+    "AAPL": 200.00,
+    "GOOGL": 150.00,
+    "NVDA": 120.00,
+    "MSFT": 420.00
+  },
+  "portfolio": {
+    "holdings": [
+      { "ticker": "META", "quantity": 10.0 },
+      { "ticker": "AAPL", "quantity": 50.0 },
+      { "ticker": "NVDA", "quantity": 25.0 }
+    ],
+    "target_allocation": {
+      "META": 0.30,
+      "AAPL": 0.30,
+      "GOOGL": 0.20,
+      "NVDA": 0.10,
+      "MSFT": 0.10
+    }
+  }
+}

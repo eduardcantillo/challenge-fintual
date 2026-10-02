@@ -1,0 +1,23 @@
+{
+  "scenario_name": "Portafolio Balanceado Conservador",
+  "description": "Distribución diversificada entre renta variable, bonos y oro",
+  "market_prices": {
+    "VOO": 480.00,
+    "QQQ": 440.00,
+    "BND": 75.00,
+    "GLD": 210.00
+  },
+  "portfolio": {
+    "holdings": [
+      { "ticker": "VOO", "quantity": 30.0 },
+      { "ticker": "QQQ", "quantity": 10.0 },
+      { "ticker": "BND", "quantity": 100.0 }
+    ],
+    "target_allocation": {
+      "VOO": 0.50,
+      "QQQ": 0.20,
+      "BND": 0.20,
+      "GLD": 0.10
+    }
+  }
+}

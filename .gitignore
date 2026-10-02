@@ -1,0 +1,10 @@
+# OS files
+.DS_Store
+
+# Go binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
